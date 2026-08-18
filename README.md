@@ -1,10 +1,21 @@
 # Website Accessibility Analyser
 
-Website Accessibility Analyser (shipped as **FixMyTree**) loads any public web page in a real headless Chromium browser, runs the axe-core rule engine against the fully-rendered DOM, and turns each WCAG violation into an AI-generated code fix. It is for developers and teams who need to find *and* remediate accessibility problems, not just read audit output.
+FixMyTree — Website Accessibility Analyser loads any public web page in a real headless Chromium browser, runs the axe-core rule engine against the fully-rendered DOM, and turns each WCAG violation into an AI-generated code fix. It is for developers and teams who need to find _and_ remediate accessibility problems, not just read audit output.
 
 ## Product Preview
 
 ![FixMyTree landing page](screenshots/landing-page.png)
+
+## Product Screenshots
+
+|                                                          |                                                         |
+| -------------------------------------------------------- | ------------------------------------------------------- |
+| ![Projects dashboard](screenshots/project-dashboard.png) | ![Project workspace](screenshots/project-workspace.png) |
+| Projects with their current score and scan count         | Pages tracked under one project, added by route or URL  |
+| ![Scan history](screenshots/scan-history.png)            | ![Scan results](screenshots/scan-results.png)           |
+| Score trend and scan history for a single page           | Score, axe totals and severity breakdown for one scan   |
+| ![Issue details](screenshots/issue-details.png)          | ![AI suggestion](screenshots/ai-suggestion.png)         |
+| Each violation with rule ID, affected nodes and target   | Gemini's explanation, corrected markup and impact       |
 
 **Live Demo:** https://website-accessibility-analyser-six.vercel.app/
 
@@ -17,24 +28,13 @@ Website Accessibility Analyser (shipped as **FixMyTree**) loads any public web p
 - **Real-browser scanning** — Chromium loads the page and waits for the network to settle, so JavaScript-rendered markup is analysed too.
 - **Weighted accessibility score** — 0–100, penalised by each violation's impact and node count.
 - **Complete violation records** — rule ID, impact, description, axe guidance link, WCAG tags, and every affected node with its HTML, selector and failure summary.
-- **Severity and rule totals** — critical / serious / moderate / minor counts, plus passes, inapplicable, and *incomplete* rules needing human review.
+- **Severity and rule totals** — critical / serious / moderate / minor counts, plus passes, inapplicable, and _incomplete_ rules needing human review.
 - **AI remediation** — Gemini returns what's wrong, corrected markup, and why it matters; answers are cached.
 - **Scan history** — every scan retained per page, with a score-trend heatmap.
 - **Projects and pages** — a project owns a base URL; pages must share that origin.
 - **PDF export** — issues, severities and generated fixes, built client-side.
 - **Failure transparency** — blocked or timed-out scans are stored as `failed` with an explanatory message.
 - **Google sign-in** — projects, scans and suggestions are scoped to their owner.
-
-## Product Screenshots
-
-|                                                          |                                                         |
-| -------------------------------------------------------- | ------------------------------------------------------- |
-| ![Projects dashboard](screenshots/project-dashboard.png) | ![Project workspace](screenshots/project-workspace.png) |
-| Projects with their current score and scan count          | Pages tracked under one project, added by route or URL  |
-| ![Scan history](screenshots/scan-history.png)            | ![Scan results](screenshots/scan-results.png)           |
-| Score trend and scan history for a single page            | Score, axe totals and severity breakdown for one scan   |
-| ![Issue details](screenshots/issue-details.png)          | ![AI suggestion](screenshots/ai-suggestion.png)         |
-| Each violation with rule ID, affected nodes and target    | Gemini's explanation, corrected markup and impact       |
 
 ## Architecture
 
@@ -62,7 +62,7 @@ flowchart TB
     SA -->|"cache miss"| GEM --> SUG --> UI
 ```
 
-A scan is one synchronous request: confirm the page belongs to the signed-in user, write a `pending` row, launch Chromium, navigate, inject axe-core, run it. The result is reduced to a score, four severity counts and the pass/incomplete/inapplicable totals; the row becomes `completed` and one `issues` row is written per violation with its affected nodes as JSON. Anything that throws updates the same row to `failed`. AI generation is separate — *Fix with AI* checks the cache before reaching Gemini.
+A scan is one synchronous request: confirm the page belongs to the signed-in user, write a `pending` row, launch Chromium, navigate, inject axe-core, run it. The result is reduced to a score, four severity counts and the pass/incomplete/inapplicable totals; the row becomes `completed` and one `issues` row is written per violation with its affected nodes as JSON. Anything that throws updates the same row to `failed`. AI generation is separate — _Fix with AI_ checks the cache before reaching Gemini.
 
 ## Tech Stack
 
@@ -100,9 +100,7 @@ A scan is one synchronous request: confirm the page belongs to the signed-in use
 
 **In the product** — semantic landmarks (`main`, `nav`, `footer`, `article`), a document language, labelled controls with visually-hidden labels where the design has no visible one, `sr-only` text on icon-only buttons, `focus-visible` rings on interactive cards and links, and layouts responsive from mobile up. Every asynchronous action has a loading state (scan overlay, AI skeleton, per-row deleting state), an empty state, and an error path. Server Components keep list and detail pages server-rendered, and scan detail fetches its scan and issues in parallel. The interface has **not** had an independent accessibility audit, and no Lighthouse or Core Web Vitals figures are quoted because none have been measured.
 
-**In the scanning engine** — axe-core runs its default rule set against the rendered document. Each scan stores violations (rule ID, impact, description, guidance URL, WCAG and best-practice tags), affected nodes with their HTML and selectors, axe's failure summary, and counts of rules that passed, were inapplicable, or came back *incomplete*. Incomplete results are reported rather than folded into the score, because automated tooling cannot decide them.
-
-
+**In the scanning engine** — axe-core runs its default rule set against the rendered document. Each scan stores violations (rule ID, impact, description, guidance URL, WCAG and best-practice tags), affected nodes with their HTML and selectors, axe's failure summary, and counts of rules that passed, were inapplicable, or came back _incomplete_. Incomplete results are reported rather than folded into the score, because automated tooling cannot decide them.
 
 ## CI/CD & Engineering Practices
 
@@ -148,4 +146,4 @@ Website Accessibility Analyser
 
 ## Engineering Takeaways
 
-Building this meant getting a real browser to run inside a serverless function, and getting an analysis library into pages that actively resist injected scripts — constraints that only appear once you scan the open web instead of a fixture. It also meant designing a schema where authorization is a property of the data model, turning a noisy audit tool into a score a user can track, treating an LLM as an untrusted service needing parsing, retries and a cache, and keeping every scan honest about whether it worked.
+Building this meant getting a real browser to run inside a serverless function, and getting an analysis library into pages that actively resist injected scripts — constraints that only appear once you scan the open web instead of a fixture. It also meant designing a schema where authorization is a property of the data model, turning a noisy audit tool into a score a user can track, treating an LLM as an untrusted service needing parsing, validation and a cache, and keeping every scan honest about whether it worked.
